@@ -1,11 +1,13 @@
+// Middleware to handle asynchronous route handlers and catch errors
 const asyncHandler = (requestHandler) => {
     return (req, res, next) => {
-        Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err))
+        // Resolve the promise returned by the request handler and catch any errors
+        Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err));
     }
 }
 
-
-export { asyncHandler }
+// Export the asyncHandler function for use in other parts of the application
+export { asyncHandler };
 
 
 

@@ -1,30 +1,35 @@
-import { ApiError } from "../utils/ApiError.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
-import jwt from "jsonwebtoken"
-import { User } from "../models/user.model.js";
+import { ApiError } from "../utils/ApiError.js"; // Import custom API error class
+import { asyncHandler } from "../utils/asyncHandler.js"; // Import async handler to handle errors in async functions
+import jwt from "jsonwebtoken"; // Import JSON Web Token library for token verification
+import { User } from "../models/user.model.js"; // Import the User model
 
-export const verifyJWT = asyncHandler(async(req, _, next) => {
+// Middleware to verify JSON Web Token (JWT)
+export const verifyJWT = asyncHandler(async (req, _, next) => {
     try {
-        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
-        
-        // console.log(token);
+        // Retrieve the token from cookies or the Authorization header
+        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
+
         if (!token) {
-            throw new ApiError(401, "Unauthorized request")
+            // Throw an error if no token is provided
+            throw new ApiError(401, "Unauthorized request");
         }
-    
-        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    
-        const user = await User.findById(decodedToken?._id).select("-password -refreshToken")
-    
+
+        // Verify the token using the secret key
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+        // Find the user associated with the token and exclude sensitive fields
+        const user = await User.findById(decodedToken?._id).select("-password -refreshToken");
+
         if (!user) {
-            
-            throw new ApiError(401, "Invalid Access Token")
+            // Throw an error if the user is not found
+            throw new ApiError(401, "Invalid Access Token");
         }
-    
+
+        // Attach the user object to the request for further use
         req.user = user;
-        next()
+        next(); // Proceed to the next middleware or route handler
     } catch (error) {
-        throw new ApiError(401, error?.message || "Invalid access token")
+        // Throw an error if token verification fails
+        throw new ApiError(401, error?.message || "Invalid access token");
     }
-    
-})
+});
